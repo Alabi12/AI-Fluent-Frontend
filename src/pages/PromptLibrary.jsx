@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { 
   Save, Copy, Trash2, Plus, Zap, Search, 
   Filter, X, Clock, Star, StarOff, Sparkles,
-  Grid3x3, List, Bookmark
+  Grid3x3, List, Bookmark, FolderOpen, Tag
 } from 'lucide-react';
 
 export default function PromptLibrary() {
@@ -24,12 +24,12 @@ export default function PromptLibrary() {
 
   const tools = ['ChatGPT', 'Gemini', 'Copilot', 'Perplexity', 'Otter', 'Canva'];
   const toolColors = {
-    'ChatGPT': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    'Gemini': 'bg-blue-100 text-blue-700 border-blue-200',
-    'Copilot': 'bg-purple-100 text-purple-700 border-purple-200',
-    'Perplexity': 'bg-orange-100 text-orange-700 border-orange-200',
-    'Otter': 'bg-pink-100 text-pink-700 border-pink-200',
-    'Canva': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+    'ChatGPT': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    'Gemini': 'bg-blue-50 text-blue-700 border-blue-200',
+    'Copilot': 'bg-purple-50 text-purple-700 border-purple-200',
+    'Perplexity': 'bg-orange-50 text-orange-700 border-orange-200',
+    'Otter': 'bg-pink-50 text-pink-700 border-pink-200',
+    'Canva': 'bg-cyan-50 text-cyan-700 border-cyan-200',
   };
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function PromptLibrary() {
     try {
       const response = await api.post('/api/prompts/', newPrompt);
       setPrompts([response.data, ...prompts]);
-      toast.success('✨ Prompt saved!');
+      toast.success('Prompt saved successfully');
       setNewPrompt({ title: '', prompt_text: '', tool: 'ChatGPT' });
       setShowForm(false);
     } catch (error) {
@@ -66,7 +66,7 @@ export default function PromptLibrary() {
 
   const copyPrompt = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success('📋 Copied to clipboard!');
+    toast.success('Copied to clipboard');
   };
 
   const deletePrompt = async (id) => {
@@ -100,15 +100,12 @@ export default function PromptLibrary() {
     return matchesSearch && matchesTool;
   });
 
-  const favoritePrompts = filteredPrompts.filter(p => p.is_favorite);
-  const regularPrompts = filteredPrompts.filter(p => !p.is_favorite);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your prompts...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500 text-sm">Loading your prompts...</p>
         </div>
       </div>
     );
@@ -119,31 +116,28 @@ export default function PromptLibrary() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Prompt Library</h1>
-          <p className="text-gray-500 mt-1">Save and reuse your best prompts</p>
+          <h1 className="text-2xl font-bold text-gray-900">Prompt Library</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage your reusable AI prompts</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="btn-primary inline-flex items-center"
+          className="btn-primary flex items-center gap-2"
         >
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {showForm ? 'Cancel' : 'New Prompt'}
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
-        <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200/50">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-600" />
-            Create New Prompt
-          </h3>
+        <div className="card p-6 bg-blue-50/50 border-blue-200">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Create New Prompt</h3>
           <div className="space-y-4">
             <div>
               <label className="label-field">Title</label>
               <input
                 type="text"
-                placeholder="e.g., Email Drafting Template"
+                placeholder="e.g., Financial Analysis Template"
                 value={newPrompt.title}
                 onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
                 className="input-field"
@@ -164,7 +158,7 @@ export default function PromptLibrary() {
               <select
                 value={newPrompt.tool}
                 onChange={(e) => setNewPrompt({ ...newPrompt, tool: e.target.value })}
-                className="input-field"
+                className="select-field"
               >
                 {tools.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -198,21 +192,21 @@ export default function PromptLibrary() {
           <select
             value={filterTool}
             onChange={(e) => setFilterTool(e.target.value)}
-            className="input-field max-w-48"
+            className="select-field min-w-[140px]"
           >
             <option value="">All Tools</option>
             {tools.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <div className="flex gap-1 border rounded-lg p-1">
+          <div className="flex gap-1 border border-gray-200 rounded-lg p-1 bg-white">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <Grid3x3 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <List className="w-4 h-4" />
             </button>
@@ -229,31 +223,31 @@ export default function PromptLibrary() {
         </div>
       </div>
 
-      {/* Prompt Stats */}
+      {/* Stats */}
       {prompts.length > 0 && (
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 bg-gray-50 rounded-xl px-4 py-2">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-2">
           <span>📚 {prompts.length} prompts</span>
           <span>⭐ {prompts.filter(p => p.is_favorite).length} favorites</span>
-          <span>🔄 {prompts.reduce((sum, p) => sum + (p.usage_count || 0), 0)} total uses</span>
+          <span>🔄 {prompts.reduce((sum, p) => sum + (p.usage_count || 0), 0)} uses</span>
         </div>
       )}
 
       {/* Prompt List */}
       {filteredPrompts.length === 0 ? (
-        <div className="card text-center py-16">
+        <div className="card p-12 text-center">
           {prompts.length === 0 ? (
             <>
-              <Zap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-xl font-semibold text-gray-500">No saved prompts yet</p>
-              <p className="text-gray-400 mt-1">Click "New Prompt" to save your first one</p>
+              <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">No prompts saved</p>
+              <p className="text-sm text-gray-400 mt-1">Click "New Prompt" to create your first one</p>
             </>
           ) : (
             <>
-              <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-xl font-semibold text-gray-500">No prompts match your filters</p>
+              <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">No prompts match your filters</p>
               <button
                 onClick={() => { setSearchTerm(''); setFilterTool(''); }}
-                className="text-blue-600 hover:underline mt-2"
+                className="text-blue-600 hover:underline text-sm mt-2"
               >
                 Clear filters
               </button>
@@ -261,7 +255,6 @@ export default function PromptLibrary() {
           )}
         </div>
       ) : viewMode === 'grid' ? (
-        // Grid View
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredPrompts.map((prompt) => (
             <PromptCard
@@ -275,7 +268,6 @@ export default function PromptLibrary() {
           ))}
         </div>
       ) : (
-        // List View
         <div className="space-y-3">
           {filteredPrompts.map((prompt) => (
             <PromptListItem
@@ -296,16 +288,16 @@ export default function PromptLibrary() {
 // Prompt Card Component (Grid View)
 function PromptCard({ prompt, onCopy, onDelete, onFavorite, toolColors }) {
   return (
-    <div className="card hover:shadow-lg transition-shadow">
+    <div className="card p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-gray-900 truncate">{prompt.title}</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-full border ${toolColors[prompt.tool] || 'bg-gray-100 text-gray-700'}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full border ${toolColors[prompt.tool] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
               {prompt.tool}
             </span>
           </div>
-          <div className="bg-gray-50 p-3 rounded-xl mt-2 font-mono text-sm text-gray-700 whitespace-pre-wrap break-words">
+          <div className="bg-gray-50 p-3 rounded-lg mt-2 font-mono text-sm text-gray-700 whitespace-pre-wrap break-words max-h-32 overflow-y-auto">
             {prompt.prompt_text}
           </div>
           <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
@@ -317,21 +309,21 @@ function PromptCard({ prompt, onCopy, onDelete, onFavorite, toolColors }) {
         <div className="flex flex-col gap-1 flex-shrink-0">
           <button
             onClick={() => onCopy(prompt.prompt_text)}
-            className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
             title="Copy"
           >
             <Copy className="w-4 h-4" />
           </button>
           <button
             onClick={() => onFavorite(prompt.id, prompt.is_favorite)}
-            className={`p-2 rounded-lg transition-colors ${prompt.is_favorite ? 'text-yellow-500 bg-yellow-50' : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'}`}
+            className={`p-1.5 rounded-lg transition-colors ${prompt.is_favorite ? 'text-amber-500 bg-amber-50' : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'}`}
             title={prompt.is_favorite ? 'Remove favorite' : 'Add favorite'}
           >
-            {prompt.is_favorite ? <Star className="w-4 h-4 fill-yellow-500" /> : <StarOff className="w-4 h-4" />}
+            {prompt.is_favorite ? <Star className="w-4 h-4 fill-amber-500" /> : <StarOff className="w-4 h-4" />}
           </button>
           <button
             onClick={() => onDelete(prompt.id)}
-            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -345,19 +337,19 @@ function PromptCard({ prompt, onCopy, onDelete, onFavorite, toolColors }) {
 // Prompt List Item Component
 function PromptListItem({ prompt, onCopy, onDelete, onFavorite, toolColors }) {
   return (
-    <div className="card hover:shadow-md transition-shadow">
+    <div className="card p-4 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4 flex-1 min-w-0">
           <button
             onClick={() => onFavorite(prompt.id, prompt.is_favorite)}
-            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${prompt.is_favorite ? 'text-yellow-500 bg-yellow-50' : 'text-gray-300 hover:text-yellow-500 hover:bg-yellow-50'}`}
+            className={`p-1 rounded-lg transition-colors flex-shrink-0 ${prompt.is_favorite ? 'text-amber-500 bg-amber-50' : 'text-gray-300 hover:text-amber-500 hover:bg-amber-50'}`}
           >
-            {prompt.is_favorite ? <Star className="w-4 h-4 fill-yellow-500" /> : <StarOff className="w-4 h-4" />}
+            {prompt.is_favorite ? <Star className="w-4 h-4 fill-amber-500" /> : <StarOff className="w-4 h-4" />}
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-gray-900">{prompt.title}</h3>
-              <span className={`text-xs px-2 py-0.5 rounded-full border ${toolColors[prompt.tool] || 'bg-gray-100 text-gray-700'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full border ${toolColors[prompt.tool] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                 {prompt.tool}
               </span>
             </div>
@@ -372,14 +364,14 @@ function PromptListItem({ prompt, onCopy, onDelete, onFavorite, toolColors }) {
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={() => onCopy(prompt.prompt_text)}
-            className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
             title="Copy"
           >
             <Copy className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(prompt.id)}
-            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />

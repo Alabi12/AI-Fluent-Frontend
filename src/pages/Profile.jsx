@@ -1,8 +1,8 @@
 import { useAuthStore } from '../store/authStore';
 import { 
   User, Mail, Briefcase, Calendar, Award, Clock, CheckCircle,
-  Edit2, Settings, LogOut, Shield, Sparkles, Zap, Target,
-  TrendingUp, BookOpen, Star, Medal, LayoutDashboard
+  Settings, LogOut, Sparkles, Target, TrendingUp,
+  BookOpen, Star, LayoutDashboard
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
@@ -36,7 +36,7 @@ export default function Profile() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/api/users/me/dashboard');
+      const response = await api.get('/api/users/me/statistics');
       setStats(response.data);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -62,35 +62,41 @@ export default function Profile() {
     );
   }
 
+  const completedCount = stats?.total_lessons_completed || 0;
+  const progressPercentage = Math.round((completedCount / 30) * 100);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Profile Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
-        
-        <div className="relative z-10 flex items-center gap-6 flex-wrap">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold shadow-xl border border-white/20">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+        <div className="flex items-center gap-5 flex-wrap">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-2xl font-bold shadow-xl border border-white/20">
             {getInitials(user?.full_name)}
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">{user?.full_name}</h1>
-            <p className="text-blue-100">{user?.email}</p>
-            <div className="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur rounded-full text-sm mt-2">
-              <Briefcase className="w-3 h-3 mr-1" />
-              {specialtyLabels[user?.specialty] || user?.specialty}
+            <h1 className="text-2xl font-bold">{user?.full_name}</h1>
+            <p className="text-blue-100 text-sm">{user?.email}</p>
+            <div className="flex items-center gap-3 mt-2">
+              <span className="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur rounded-full text-xs">
+                <Briefcase className="w-3 h-3 mr-1" />
+                {specialtyLabels[user?.specialty] || user?.specialty}
+              </span>
+              <span className="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur rounded-full text-xs">
+                <Award className="w-3 h-3 mr-1" />
+                {progressPercentage}% Complete
+              </span>
             </div>
           </div>
           <div className="flex gap-2">
             <button 
               onClick={() => navigate('/dashboard')} 
-              className="px-4 py-2 bg-white/20 backdrop-blur rounded-xl text-sm font-medium hover:bg-white/30 transition-colors"
+              className="px-4 py-2 bg-white/20 backdrop-blur rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
             >
               Dashboard
             </button>
             <button 
               onClick={handleLogout} 
-              className="px-4 py-2 bg-white/20 backdrop-blur rounded-xl text-sm font-medium hover:bg-red-500/40 transition-colors"
+              className="px-4 py-2 bg-white/20 backdrop-blur rounded-lg text-sm font-medium hover:bg-red-500/40 transition-colors"
             >
               <LogOut className="w-4 h-4 inline mr-1" />
               Sign Out
@@ -101,75 +107,72 @@ export default function Profile() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card text-center">
-          <div className="text-2xl mb-1">📚</div>
-          <p className="text-2xl font-bold text-gray-900">{stats?.total_days_completed || 0}</p>
-          <p className="text-sm text-gray-600">Lessons Done</p>
+        <div className="card-stat text-center">
+          <p className="text-2xl font-bold text-gray-900">{completedCount}</p>
+          <p className="text-xs text-gray-500">Lessons Done</p>
         </div>
-        <div className="card text-center">
-          <div className="text-2xl mb-1">⏱️</div>
-          <p className="text-2xl font-bold text-gray-900">{Math.floor((stats?.total_time_saved_minutes || 0) / 60)}h</p>
-          <p className="text-sm text-gray-600">Time Saved</p>
+        <div className="card-stat text-center">
+          <p className="text-2xl font-bold text-gray-900">
+            {Math.floor((stats?.total_time_saved_minutes || 0) / 60)}h
+          </p>
+          <p className="text-xs text-gray-500">Time Saved</p>
         </div>
-        <div className="card text-center">
-          <div className="text-2xl mb-1">🔥</div>
-          <p className="text-2xl font-bold text-gray-900">{stats?.streak_days || 0}</p>
-          <p className="text-sm text-gray-600">Day Streak</p>
+        <div className="card-stat text-center">
+          <p className="text-2xl font-bold text-gray-900">{stats?.current_streak || 0}</p>
+          <p className="text-xs text-gray-500">Day Streak</p>
         </div>
-        <div className="card text-center">
-          <div className="text-2xl mb-1">🏆</div>
-          <p className="text-2xl font-bold text-gray-900">{Math.round((stats?.total_days_completed || 0) / 30 * 100)}%</p>
-          <p className="text-sm text-gray-600">Complete</p>
+        <div className="card-stat text-center">
+          <p className="text-2xl font-bold text-gray-900">{progressPercentage}%</p>
+          <p className="text-xs text-gray-500">Complete</p>
         </div>
       </div>
 
       {/* Account Information */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <User className="w-5 h-5 text-blue-600" />
-          Account Information
-        </h3>
+      <div className="card p-6">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Account Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-            <User className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <User className="w-4 h-4 text-gray-400" />
             <div>
-              <p className="text-sm text-gray-500">Full Name</p>
-              <p className="font-medium text-gray-900">{user?.full_name}</p>
+              <p className="text-xs text-gray-500">Full Name</p>
+              <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-            <Mail className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <Mail className="w-4 h-4 text-gray-400" />
             <div>
-              <p className="text-sm text-gray-500">Email Address</p>
-              <p className="font-medium text-gray-900">{user?.email}</p>
+              <p className="text-xs text-gray-500">Email</p>
+              <p className="text-sm font-medium text-gray-900">{user?.email}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-            <Briefcase className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <Briefcase className="w-4 h-4 text-gray-400" />
             <div>
-              <p className="text-sm text-gray-500">Specialty</p>
-              <p className="font-medium text-gray-900 capitalize">{specialtyLabels[user?.specialty]}</p>
+              <p className="text-xs text-gray-500">Specialty</p>
+              <p className="text-sm font-medium text-gray-900 capitalize">
+                {specialtyLabels[user?.specialty] || user?.specialty}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-            <Calendar className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <Calendar className="w-4 h-4 text-gray-400" />
             <div>
-              <p className="text-sm text-gray-500">Member Since</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-xs text-gray-500">Member Since</p>
+              <p className="text-sm font-medium text-gray-900">
                 {user?.created_at ? format(new Date(user.created_at), 'MMMM d, yyyy') : 'N/A'}
               </p>
             </div>
           </div>
 
           {user?.last_login_at && (
-            <div className="md:col-span-2 flex items-center gap-4 p-4 bg-green-50 rounded-2xl">
-              <CheckCircle className="w-5 h-5 text-green-500" />
+            <div className="md:col-span-2 flex items-center gap-4 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
               <div>
-                <p className="text-sm text-green-600">Last Active</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-xs text-emerald-600">Last Active</p>
+                <p className="text-sm font-medium text-gray-900">
                   {formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })}
                 </p>
               </div>
@@ -182,30 +185,30 @@ export default function Profile() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <button 
           onClick={() => navigate('/dashboard')}
-          className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl text-center hover:scale-105 transition-transform"
+          className="p-4 bg-white rounded-xl border border-gray-200/80 text-center hover:shadow-md transition-all"
         >
-          <LayoutDashboard className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+          <LayoutDashboard className="w-5 h-5 text-blue-600 mx-auto mb-2" />
           <p className="text-sm font-medium text-gray-700">Dashboard</p>
         </button>
         <button 
           onClick={() => navigate('/lesson/today')}
-          className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl text-center hover:scale-105 transition-transform"
+          className="p-4 bg-white rounded-xl border border-gray-200/80 text-center hover:shadow-md transition-all"
         >
-          <BookOpen className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+          <BookOpen className="w-5 h-5 text-purple-600 mx-auto mb-2" />
           <p className="text-sm font-medium text-gray-700">Today's Lesson</p>
         </button>
         <button 
           onClick={() => navigate('/prompts')}
-          className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl text-center hover:scale-105 transition-transform"
+          className="p-4 bg-white rounded-xl border border-gray-200/80 text-center hover:shadow-md transition-all"
         >
-          <Star className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
+          <Star className="w-5 h-5 text-amber-600 mx-auto mb-2" />
           <p className="text-sm font-medium text-gray-700">Prompt Library</p>
         </button>
         <button 
           onClick={() => window.open('/api/docs', '_blank')}
-          className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl text-center hover:scale-105 transition-transform"
+          className="p-4 bg-white rounded-xl border border-gray-200/80 text-center hover:shadow-md transition-all"
         >
-          <Settings className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+          <Settings className="w-5 h-5 text-gray-600 mx-auto mb-2" />
           <p className="text-sm font-medium text-gray-700">API Docs</p>
         </button>
       </div>
